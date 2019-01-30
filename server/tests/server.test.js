@@ -262,7 +262,7 @@ describe('POST /users/login', () => {
             .expect((res) => {
                 expect(res.headers['x-auth']).toExist();
             })
-            .end((err) => {
+            .end((err, res) => {
                 if(err) {
                     return done(err);
                 }
@@ -288,12 +288,31 @@ describe('POST /users/login', () => {
             .expect((res) => {
                 expect(res.headers['x-auth']).toNotExist();
             })
-            .end((err) => {
+            .end((err, res) => {
                 if(err) {
                     return done(err);
                 }
 
                 User.findById(users[1]._id).then((user) => {
+                    expect(user.tokens.length).toBe(0);
+                    done();
+                }).catch((e) => done());
+            });
+    });
+});
+
+describe('DELETE /users/me/token', () => {
+    it('should remove token', (done) => {
+        request(app)
+            .delete('/users/me/token')
+            .set('x-auth', users[0].tokens[0].token)
+            .expect(200)
+            .end((err, res) => {
+                if(err) {
+                    return done(err);
+                }
+
+                User.findById(users[0]._id).then((user) => {
                     expect(user.tokens.length).toBe(0);
                     done();
                 }).catch((e) => done());
